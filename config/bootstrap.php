@@ -1,13 +1,15 @@
 <?php
 
 use DI\ContainerBuilder;
-
+use Slim\Factory\AppFactory;
 
 $containerBuilder = new ContainerBuilder();
 $containerBuilder->useAutowiring(true);
 $containerBuilder->addDefinitions(require 'container.php');
 $container = $containerBuilder->build();
 
-use DI\Bridge\Slim\Bridge;
 
-$app = Bridge::create($container);
+AppFactory::setContainer($container);
+$app = AppFactory::create();
+
+$app->addErrorMiddleware(true, true, true);

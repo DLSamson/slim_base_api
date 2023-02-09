@@ -1,5 +1,5 @@
 <?php
-error_reporting(E_ALL);
+
 require '../vendor/autoload.php';
 
 if(!defined('ROOT_DIR'))
