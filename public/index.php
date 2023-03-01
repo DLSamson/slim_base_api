@@ -1,11 +1,7 @@
 <?php
 
-require '../vendor/autoload.php';
-
-if(!defined('ROOT_DIR'))
-    define('ROOT_DIR', dirname(__DIR__));
-
-require_once ROOT_DIR.'/config/bootstrap.php';
+require_once '../vendor/autoload.php';
+require_once dirname(__DIR__) .'/config/bootstrap.php';
 require_once ROOT_DIR.'/config/routes.php';
 
 /* @var \Slim\App $app */
