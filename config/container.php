@@ -15,6 +15,9 @@ if(!is_dir(ROOT_DIR.'/cache'))
 if(!is_dir(ROOT_DIR.'/cache/templates'))
     mkdir(ROOT_DIR.'/cache/templates');
 
+if(!is_dir(ROOT_DIR.'/log'))
+    mkdir(ROOT_DIR.'/log');
+
 return [
         Logger::class => autowire()
             ->constructor('main', [new StreamHandler(ROOT_DIR.'/log/log.log', Logger::DEBUG)]),
