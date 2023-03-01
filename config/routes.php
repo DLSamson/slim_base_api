@@ -7,4 +7,6 @@ use Api\Controllers\Pages\IndexController;
 $app->get('/echo[/{value}]', [EchoController::class, 'echo']);
 $app->get('/ping', [EchoController::class, 'ping']);
 
-$app->get('/', IndexController::class);
+$app->get('/', function($req, $res, $arg) {
+
+});
