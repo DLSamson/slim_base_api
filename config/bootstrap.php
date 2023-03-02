@@ -29,10 +29,13 @@ $container = $containerBuilder->build();
 /* Require .env file */
 $dotenv = Dotenv::createImmutable(ROOT_DIR);
 try {
-    $dotenv->load();
+    $dotenv->safeLoad();
     $dotenv
         ->required([
-
+            'DB_HOST',
+            'DB_NAME',
+            'DB_USERNAME',
+            'DB_PASSWORD'
         ])
         ->notEmpty();
 } catch (Throwable $exception) {
@@ -44,7 +47,14 @@ try {
 /* Setting up database */
 $capsule = new Capsule();
 $capsule->addConnection([
-
+    'driver' => 'mysql',
+    'host' => $_ENV['DB_HOST'],
+    'database' => $_ENV['DB_NAME'],
+    'username' => $_ENV['DB_USERNAME'],
+    'password' => $_ENV['DB_PASSWORD'],
+    'charset' => 'utf8',
+    'collation' => 'utf8_unicode_ci',
+    'prefix' => $_ENV['DB_PREFIX'] ?: '',
 ]);
 $capsule->setAsGlobal();
 $capsule->bootEloquent();

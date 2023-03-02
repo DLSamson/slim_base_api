@@ -1,7 +1,6 @@
 <?php
 
-use Api\Controllers\EchoController;
-use Api\Controllers\Pages\IndexController;
+use Api\Core\Http\EchoController;
 
 /* @var \Slim\App $app */
 $app->get('/echo[/{value}]', [EchoController::class, 'echo']);
@@ -13,3 +12,5 @@ $app->get('/', function($req, $res, $arg) {
     return $res
         ->withStatus(200);
 });
+
+$app->post('/registration', [\Api\Controllers\Auth::class, 'register']);

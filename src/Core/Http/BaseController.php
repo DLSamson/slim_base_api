@@ -1,6 +1,6 @@
 <?php
 
-namespace Api\Controllers;
+namespace Api\Core\Http;
 
 use Psr\Log\LoggerInterface;
 

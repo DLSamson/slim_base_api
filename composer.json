@@ -8,7 +8,8 @@
         "monolog/monolog": "^2.9",
         "fenom/fenom": "^2.12",
         "illuminate/database": "^8.83",
-        "vlucas/phpdotenv": "^5.5"
+        "vlucas/phpdotenv": "^5.5",
+        "symfony/validator": "^5.4"
     },
     "autoload": {
         "psr-4": {
