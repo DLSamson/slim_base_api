@@ -1,7 +1,7 @@
 <?php
 
 use Api\Core\Http\EchoController;
-use Api\Controllers\UserController;
+use Api\Controllers\AccountsController;
 
 /* @var \Slim\App $app */
 $app->get('/echo[/{value}]', [EchoController::class, 'echo']);
@@ -14,4 +14,5 @@ $app->get('/', function($req, $res, $arg) {
         ->withStatus(200);
 });
 
-$app->post('/registration', [UserController::class, 'register'])->setName('register');
+$app->post('/registration', [AccountsController::class, 'register'])->setName('register');
+$app->get('/accounts[/{accountId}]', [AccountsController::class, 'search'])->setName('searchUserWithId');

@@ -11,7 +11,7 @@ use Slim\Routing\RouteCollector;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 
-class UserController extends BaseController {
+class AccountsController extends BaseController {
     public function register(Request $request, Response $response) {
         $json = $request->getBody()->getContents();
         $data = json_decode($json);
@@ -76,5 +76,33 @@ class UserController extends BaseController {
             ->withStatus(400);
     }
 
-    public function
+    public function search(Request $request, Response $response, array $args) {
+        if(!User::Auth($request->getHeaderLine('Authorization'))) {
+            $response->getBody()->write('Неверные авторизационные данные');
+            return $response->withStatus(401);
+        }
+        $accoundId = $args['accountId'];
+        $violations = $this->validator->validate($accoundId, [
+            new Assert\NotBlank,
+            new Assert\Positive,
+        ]);
+
+        if($violations->count() !== 0)
+            return $response->withStatus(400);
+
+        if(!$user = User::where(['id' => $accoundId])->first()) {
+            $response->getBody()->write('Аккаунт с таким accountId не найден');
+            return $response->withStatus(404);
+        }
+
+        $response->getBody()->write(json_encode([
+            "id" => $user->id,
+            "firstName" => $user->firstName,
+            "lastName" => $user->lastName,
+            "email" => $user->email,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        return $response
+            ->withHeader('Content-type', 'application/json')
+            ->withStatus(200);
+    }
 }
