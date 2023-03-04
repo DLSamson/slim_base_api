@@ -8,6 +8,8 @@ use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Psr\Log\LoggerInterface;
 use Psr\Container\ContainerInterface;
+use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 return [
         Logger::class => autowire()
@@ -21,5 +23,7 @@ return [
                 ROOT_DIR.'/cache/templates',
                 Fenom::AUTO_RELOAD | Fenom::AUTO_STRIP | Fenom::AUTO_ESCAPE);
         }),
+
+        ValidatorInterface::class => factory(fn(ContainerInterface $c) => Validation::createValidator()),
 ];
 

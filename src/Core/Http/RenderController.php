@@ -4,10 +4,11 @@ namespace Api\Core\Http;
 
 use Psr\Log\LoggerInterface;
 use Fenom;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RenderController extends BaseController {
-    public function __construct(LoggerInterface $log, Fenom $fenom) {
-        parent::__construct($log);
+    public function __construct(LoggerInterface $log, ValidatorInterface $validator, Fenom $fenom) {
+        parent::__construct($log, $validator);
         $this->fenom = $fenom;
     }
 

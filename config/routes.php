@@ -1,6 +1,7 @@
 <?php
 
 use Api\Core\Http\EchoController;
+use Api\Controllers\UserController;
 
 /* @var \Slim\App $app */
 $app->get('/echo[/{value}]', [EchoController::class, 'echo']);
@@ -13,4 +14,4 @@ $app->get('/', function($req, $res, $arg) {
         ->withStatus(200);
 });
 
-$app->post('/registration', [\Api\Controllers\Auth::class, 'register']);
+$app->post('/registration', [UserController::class, 'register'])->setName('register');

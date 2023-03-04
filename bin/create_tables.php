@@ -14,5 +14,6 @@ Capsule::schema()->create('users', function(Blueprint $table) {
     $table->string('lastName');
     $table->string('email');
     $table->string('passwordHash');
-    $table->unsignedBigInteger('registerDate');
+    $table->date('updated_at');
+    $table->date('created_at');
 });
