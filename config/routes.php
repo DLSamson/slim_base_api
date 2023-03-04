@@ -15,4 +15,6 @@ $app->get('/', function($req, $res, $arg) {
 });
 
 $app->post('/registration', [AccountsController::class, 'register'])->setName('register');
-$app->get('/accounts[/{accountId}]', [AccountsController::class, 'search'])->setName('searchUserWithId');
+$app->get('/accounts/search', [AccountsController::class, 'searchParams'])->setName('searchUserWithParams');
+$app->get('/accounts[/{accountId}]', [AccountsController::class, 'searchId'])->setName('searchUserWithId');
+//$app->put('/accounts[/{accountId}]', [AccountsController::class, 'update'])->setName('updateUser');

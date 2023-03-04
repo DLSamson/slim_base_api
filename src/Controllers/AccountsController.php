@@ -6,10 +6,9 @@ use Api\Core\Http\BaseController;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Api\Core\Models\User;
-use Slim\Routing\Route;
-use Slim\Routing\RouteCollector;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\ConstraintViolationInterface;
+use Illuminate\Database\Eloquent\Collection;
 
 class AccountsController extends BaseController {
     public function register(Request $request, Response $response) {
@@ -76,7 +75,7 @@ class AccountsController extends BaseController {
             ->withStatus(400);
     }
 
-    public function search(Request $request, Response $response, array $args) {
+    public function searchId(Request $request, Response $response, array $args) {
         if(!User::Auth($request->getHeaderLine('Authorization'))) {
             $response->getBody()->write('Неверные авторизационные данные');
             return $response->withStatus(401);
@@ -104,5 +103,68 @@ class AccountsController extends BaseController {
         return $response
             ->withHeader('Content-type', 'application/json')
             ->withStatus(200);
+    }
+
+    public function searchParams(Request $request, Response $response) {
+        if(!User::Auth($request->getHeaderLine('Authorization'))) {
+            $response->getBody()->write('Неверные авторизационные данные');
+            return $response->withStatus(401);
+        }
+
+        $params = $request->getQueryParams();
+        $params['from'] = $params['from'] ?: 0;
+        $violations = $this->validator->validate([
+                'from' => $params['from'],
+                'size' => $params['size']
+            ],
+            new Assert\Collection([
+                'from' => [
+                    new Assert\Type('int'),
+                    new Assert\PositiveOrZero(),
+                ],
+                'size' => [
+                    new Assert\NotBlank(),
+                    new Assert\NotEqualTo(0),
+                    new Assert\Positive(),
+                ],
+            ]
+        ));
+
+        if($violations->count() !== 0) {
+            /* If has errors */
+            $errors = [];
+            foreach($violations as $violation) {
+                /* @var ConstraintViolationInterface $violation */
+                $errors[$violation->getPropertyPath()] = $violation->getMessage();
+            }
+            $response->getBody()->write(json_encode($errors, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+            return $response
+                ->withHeader('content-type', 'application/json')
+                ->withStatus(400);
+        }
+
+        $params = array_filter($params, fn($el) => $el != null && $el != "");
+        $queryConditions = array_filter($params, fn($el) => in_array($el, [
+                'firstName',
+                'lastName',
+                'email',
+            ]
+        ), ARRAY_FILTER_USE_KEY);
+
+        /* @var Collection $users */
+        $users = User::where($queryConditions)
+            ->select('firstName', 'lastName', 'email')
+            ->offset($params['from'])
+            ->limit($params['size'])
+            ->get();
+
+        $response->getBody()->write(json_encode($users));
+        return $response
+            ->withHeader('Content-type', 'application/json')
+            ->withStatus(200);
+    }
+
+    public function update(Request $request, Response $response) {
+
     }
 }
