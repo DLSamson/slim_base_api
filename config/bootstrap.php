@@ -1,24 +1,28 @@
 <?php
 
 use DI\ContainerBuilder;
+use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Psr7\Response;
+use Slim\Exception\HttpNotFoundException;
 use Slim\Factory\AppFactory;
 use Dotenv\Dotenv;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Psr\Log\LoggerInterface;
 
 /* Setting up project ROOT_DIR */
-if(!defined('ROOT_DIR'))
+if (!defined('ROOT_DIR'))
     define('ROOT_DIR', dirname(__DIR__));
 
 /* Check if all folders are created */
-if(!is_dir(ROOT_DIR.'/cache'))
-    mkdir(ROOT_DIR.'/cache');
+if (!is_dir(ROOT_DIR . '/cache'))
+    mkdir(ROOT_DIR . '/cache');
 
-if(!is_dir(ROOT_DIR.'/cache/templates'))
-    mkdir(ROOT_DIR.'/cache/templates');
+if (!is_dir(ROOT_DIR . '/cache/templates'))
+    mkdir(ROOT_DIR . '/cache/templates');
 
-if(!is_dir(ROOT_DIR.'/log'))
-    mkdir(ROOT_DIR.'/log');
+if (!is_dir(ROOT_DIR . '/log'))
+    mkdir(ROOT_DIR . '/log');
 
 /* Setting up DI Container */
 $containerBuilder = new ContainerBuilder();
@@ -35,7 +39,7 @@ try {
             'DB_HOST',
             'DB_NAME',
             'DB_USERNAME',
-            'DB_PASSWORD'
+            'DB_PASSWORD',
         ])
         ->notEmpty();
 } catch (Throwable $exception) {
@@ -47,14 +51,14 @@ try {
 /* Setting up database */
 $capsule = new Capsule();
 $capsule->addConnection([
-    'driver' => 'mysql',
-    'host' => $_ENV['DB_HOST'],
-    'database' => $_ENV['DB_NAME'],
-    'username' => $_ENV['DB_USERNAME'],
-    'password' => $_ENV['DB_PASSWORD'],
-    'charset' => 'utf8',
+    'driver'    => 'mysql',
+    'host'      => $_ENV['DB_HOST'],
+    'database'  => $_ENV['DB_NAME'],
+    'username'  => $_ENV['DB_USERNAME'],
+    'password'  => $_ENV['DB_PASSWORD'],
+    'charset'   => 'utf8',
     'collation' => 'utf8_unicode_ci',
-    'prefix' => $_ENV['DB_PREFIX'] ?: '',
+    'prefix'    => $_ENV['DB_PREFIX'] ?: '',
 ]);
 $capsule->setAsGlobal();
 $capsule->bootEloquent();
@@ -63,8 +67,19 @@ $capsule->bootEloquent();
 AppFactory::setContainer($container);
 $app = AppFactory::create();
 
-$app->addErrorMiddleware(
+$errorMiddleware = $app->addErrorMiddleware(
     true,
     true,
-    true
+    true,
+    $container->get(LoggerInterface::class),
+);
+
+/* Catch 404 error */
+$errorMiddleware->setErrorHandler(HttpNotFoundException::class,
+    function ($request, $exception) {
+        $response = (new \Slim\Psr7\Response())->withStatus(404);
+        $response->getBody()->write('404');
+
+        return $response;
+    }
 );
