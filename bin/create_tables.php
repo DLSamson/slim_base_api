@@ -17,3 +17,4 @@ Capsule::schema()->create('users', function (Blueprint $table) {
     $table->date('updated_at');
     $table->date('created_at');
 });
+

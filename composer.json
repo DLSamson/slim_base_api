@@ -10,7 +10,8 @@
         "illuminate/database": "^8.83",
         "vlucas/phpdotenv": "^5.5",
         "symfony/validator": "^5.4",
-        "larapack/dd": "^1.1"
+        "larapack/dd": "^1.1",
+        "fakerphp/faker": "^1.21"
     },
     "autoload": {
         "psr-4": {

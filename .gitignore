@@ -6,5 +6,5 @@
 .idea/
 .vscode/
 
-docker/volume/mysql
+docker/volumes/mysql
 .env
