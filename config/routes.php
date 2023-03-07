@@ -1,7 +1,7 @@
 <?php
 
 use Api\Controllers\EchoController;
-use Api\Controllers\AccountsController;
+use Api\Controllers\AccountController;
 
 /* @var \Slim\App $app */
 $app->get('/echo[/{value}]', [EchoController::class, 'echo']);
@@ -14,7 +14,8 @@ $app->get('/', function ($req, $res, $arg) {
     return $res->withStatus(200);
 });
 
-$app->post('/registration', [AccountsController::class, 'register'])->setName('register');
-$app->get('/accounts/search', [AccountsController::class, 'searchParams'])->setName('searchUserWithParams');
-$app->get('/accounts[/{accountId}]', [AccountsController::class, 'searchId'])->setName('searchUserWithId');
-$app->put('/accounts[/{accountId}]', [AccountsController::class, 'update'])->setName('updateUser');
+$app->post('/registration', [AccountController::class, 'register'])->setName('register');
+$app->get('/accounts/search', [AccountController::class, 'searchParams'])->setName('searchUserWithParams');
+$app->get('/accounts[/{accountId}]', [AccountController::class, 'searchId'])->setName('searchUserWithId');
+$app->put('/accounts[/{accountId}]', [AccountController::class, 'update'])->setName('updateUser');
+

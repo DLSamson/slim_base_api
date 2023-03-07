@@ -3,6 +3,7 @@
 namespace Api\Controllers;
 
 use Api\Core\Http\BaseController;
+use Api\Core\Services\Authorization;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Api\Core\Models\User;
@@ -10,7 +11,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Illuminate\Database\Eloquent\Collection;
 
-class AccountsController extends BaseController {
+class AccountController extends BaseController {
     public function register(Request $request, Response $response) {
         $json = $request->getBody()->getContents();
         $data = json_decode($json);
@@ -26,7 +27,8 @@ class AccountsController extends BaseController {
         ]));
 
         /* If user is Authenticated */
-        if (User::Auth($request->getHeaderLine('Authorization'))) {
+        $auth_code = Authorization::Auth($request->getHeaderLine('Authorization'));
+        if ($auth_code === Authorization::FAIL || $auth_code === Authorization::SUCCESS) {
             $response->getBody()->write('Запрос от авторизованного аккаунта');
 
             return $response->withStatus(403);
@@ -80,11 +82,11 @@ class AccountsController extends BaseController {
     }
 
     public function searchId(Request $request, Response $response, array $args) {
-        if (!User::Auth($request->getHeaderLine('Authorization'))) {
+        if (Authorization::Auth($request->getHeaderLine('Authorization')) === Authorization::FAIL) {
             $response->getBody()->write('Неверные авторизационные данные');
-
             return $response->withStatus(401);
         }
+
         $accoundId  = $args['accountId'];
         $violations = $this->validator->validate($accoundId, [
             new Assert\NotBlank,
@@ -94,26 +96,24 @@ class AccountsController extends BaseController {
         if ($violations->count() !== 0)
             return $response->withStatus(400);
 
-        if (!$user = User::where(['id' => $accoundId])->first()) {
-            $response->getBody()->write('Аккаунт с таким accountId не найден');
+        $user = User
+            ::where(['id' => $accoundId])
+            ->select("id", "firstName", "lastName", "email")
+            ->first();
 
+        if (!$user) {
+            $response->getBody()->write('Аккаунт с таким accountId не найден');
             return $response->withStatus(404);
         }
 
-        $response->getBody()->write(json_encode([
-            "id"        => $user->id,
-            "firstName" => $user->firstName,
-            "lastName"  => $user->lastName,
-            "email"     => $user->email,
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-
+        $response->getBody()->write(json_encode($user));
         return $response
             ->withHeader('Content-type', 'application/json')
             ->withStatus(200);
     }
 
     public function searchParams(Request $request, Response $response) {
-        if (!User::Auth($request->getHeaderLine('Authorization'))) {
+        if (Authorization::Auth($request->getHeaderLine('Authorization')) === Authorization::FAIL) {
             $response->getBody()->write('Неверные авторизационные данные');
 
             return $response->withStatus(401);
@@ -121,6 +121,7 @@ class AccountsController extends BaseController {
 
         $params         = $request->getQueryParams();
         $params['from'] = $params['from'] ?: 0;
+        $params['size'] = $params['size'] !== null ? $params['size'] : 10;
         $violations     = $this->validator->validate([
             'from' => $params['from'],
             'size' => $params['size'],
@@ -131,7 +132,6 @@ class AccountsController extends BaseController {
                         new Assert\PositiveOrZero(),
                     ],
                     'size' => [
-                        new Assert\NotBlank(),
                         new Assert\NotEqualTo(0),
                         new Assert\Positive(),
                     ],
@@ -162,7 +162,7 @@ class AccountsController extends BaseController {
 
         /* @var Collection $users */
         $users = User::where($queryConditions)
-            ->select('firstName', 'lastName', 'email')
+            ->select('id', 'firstName', 'lastName', 'email')
             ->offset($params['from'])
             ->limit($params['size'])
             ->get();
@@ -175,7 +175,8 @@ class AccountsController extends BaseController {
     }
 
     public function update(Request $request, Response $response, array $args) {
-        if (!User::Auth($request->getHeaderLine('Authorization'))) {
+        $authCode = Authorization::Auth($request->getHeaderLine('Authorization'));
+        if ($authCode !== Authorization::SUCCESS) {
             $error_message = 'Запрос от неавторизованного аккаунта или Неверные авторизационные данные';
             $response->getBody()->write($error_message);
 

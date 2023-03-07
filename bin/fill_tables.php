@@ -15,8 +15,11 @@ foreach(range(1, 20) as $index) {
         'email'        => $faker->unique()->email(),
         'passwordHash' => User::HashPassword($faker->password()),
     ]);
-    $user->save();
-    echo "$index: User created\r";
+
+//    $user->save();
+
+//    echo "$index: User created";
+    echo $user->email . PHP_EOL;
 }
 
 echo "\nCOMPLETE";
