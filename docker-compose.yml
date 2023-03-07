@@ -1,40 +1,48 @@
-version: '3.9'
+version: '3'
 
 services:
   php:
-    build:
+    build: 
       context: './docker/php'
     volumes:
       - './:/var/www/html'
-    depends_on:
-      - nginx
-      - mysql
+    user: '1000:1000'
     working_dir: '/var/www/html'
-    #command: make database
     environment:
-      DB_HOST: mysql
-      DB_NAME: drip_chik
-      DB_USERNAME: root
-      DB_PASSWORD: root
-
+      - DB_HOST=mysql
+      - DB_NAME=database
+      - DB_USERNAME=user
+      - DB_PASSWORD=user
+    links:
+      - 'mysql:mysql'
+    networks:
+      - api
+    depends_on:
+      - mysql
+  
   nginx:
     image: nginx:latest
-    ports:
-      - '80:80'
+    ports: 
+      - 8080:80
     volumes:
       - './:/var/www/html'
       - './docker/nginx/conf.d:/etc/nginx/conf.d'
+    links:
+      - 'php:php'
+    networks:
+      - api
 
   mysql:
     image: mysql:8.0
     environment:
-      MYSQL_DATABASE: drip_chik
-      MYSQL_USER: drip_chik
-      MYSQL_PASSWORD: drip_chik
-      MYSQL_ROOT_PASSWORD: root
+      - MYSQL_DATABASE=database
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=user
+      - MYSQL_ROOT_PASSWORD=root
     volumes:
-      - './docker/volume/mysql:/var/lib/mysql'
-
+      - './docker/volumes/mysql:/var/lib/mysql'
+    networks:
+      - api
 
   #Сервис для разворачивания контейнера с автотестами
   tests:
@@ -44,8 +52,16 @@ services:
       - "8090:8080"
     depends_on:
       - php
+    links:
+      - 'nginx:nginx'
+    networks:
+      - api
     environment:
       SERVER_URL: http://nginx:80
       STAGE: 1
     # all - запуск всех тестов из трёх доступных этапов
     # 0, 1 или 2 - запуск тестов для соответствующего этапа
+
+networks:
+  api:
+    driver: bridge
