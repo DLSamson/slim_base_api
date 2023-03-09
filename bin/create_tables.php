@@ -5,10 +5,13 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
 require_once dirname(__DIR__) . '/config/bootstrap.php';
 
 use Illuminate\Database\Capsule\Manager as Capsule;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;;
 
+Capsule::schema()->dropIfExists('animals');
 Capsule::schema()->dropIfExists('users');
+Capsule::schema()->dropIfExists('locations');
+Capsule::schema()->dropIfExists('types');
+
 Capsule::schema()->create('users', function (Blueprint $table) {
     $table->id();
 
@@ -21,8 +24,6 @@ Capsule::schema()->create('users', function (Blueprint $table) {
     $table->softDeletes();
 });
 
-
-Capsule::schema()->dropIfExists('locations');
 Capsule::schema()->create('locations', function (Blueprint $table) {
     $table->id();
 
@@ -33,8 +34,6 @@ Capsule::schema()->create('locations', function (Blueprint $table) {
     $table->softDeletes();
 });
 
-
-Capsule::schema()->dropIfExists('types');
 Capsule::schema()->create('types', function (Blueprint $table) {
     $table->id();
 
@@ -44,8 +43,6 @@ Capsule::schema()->create('types', function (Blueprint $table) {
     $table->softDeletes();
 });
 
-
-Capsule::schema()->dropIfExists('animals');
 Capsule::schema()->create('animals', function (Blueprint $table) {
     $table->id();
 
@@ -54,21 +51,21 @@ Capsule::schema()->create('animals', function (Blueprint $table) {
     $table->float('height');
 
     /* Глянуть ограничения */
-    $table->string('gender', );
+    $table->string('gender');
     $table->string('lifeStatus');
 
     //Автоматом на момент добавления
-    $table->date('chippingDateTime')->default(DB::raw('CURRENT_TIMESTAMP'));
+    $table->timestamp('chippingDateTime')->default(Capsule::raw('CURRENT_TIMESTAMP'));
 
     /* Привязать к пользователю */
-    $table->string('chipperId');
+    $table->unsignedBigInteger('chipperId');
     $table->foreign('chipperId')
-        ->references('id')->on('locations');
+        ->references('id')->on('users');
 
     /* Привязать к локации */
-    $table->integer('chippingLocationId');
+    $table->unsignedBigInteger('chippingLocationId');
     $table->foreign('chippingLocationId')
-        ->references('id')->on('users');
+        ->references('id')->on('locations');
 
     $table->date('deathDateTime')->nullable();
 
