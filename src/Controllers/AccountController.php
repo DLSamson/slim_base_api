@@ -3,12 +3,10 @@
 namespace Api\Controllers;
 
 use Api\Core\Http\BaseController;
-use Api\Core\Services\Authorization;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Api\Core\Models\User;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\ConstraintViolationInterface;
 use Illuminate\Database\Eloquent\Collection;
 
 class AccountController extends BaseController {
