@@ -1,8 +1,10 @@
 tables:
 	php bin/create_tables.php
 
-fake_data:
+data:
 	php bin/fill_tables.php
 
+database: tables data
+
 .PHONY:
-	tables docker
+	tables data database

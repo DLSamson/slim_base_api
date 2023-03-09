@@ -19,3 +19,9 @@ $app->get('/accounts/search', [AccountController::class, 'searchParams'])->setNa
 $app->get('/accounts[/{accountId}]', [AccountController::class, 'searchId'])->setName('searchUserWithId');
 $app->put('/accounts[/{accountId}]', [AccountController::class, 'update'])->setName('updateUser');
 
+//$app->get('/animals/{animalId}', [])->setName('');
+//$app->get('/animals/search', [])->setName('');
+//$app->get('/animals/types/{typeId}', [])->setName('');
+//
+//$app->get('/locations/{pointId}', [])->setName('');
+//$app->get('/animals/{animalId}/locations', [])->setName('');
