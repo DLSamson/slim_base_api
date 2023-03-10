@@ -6,13 +6,22 @@ use Psr\Http\Message\ResponseInterface;
 use Slim\Psr7\Response;
 
 class ResponseFactory {
+    public static function Success($data = []) {
+        $response = new Response();
+        if($data) {
+            $response->getBody()->write(json_encode($data));
+            $response = $response->withHeader('Content-Type', 'application/json');
+        }
+        return $response
+            ->withStatus(200);
+    }
 
     public static function BadRequest($errors = []) : ResponseInterface {
         $response = new Response();
         $response->getBody()->write(json_encode($errors));
 
         return $response
-            ->withHeader('content-type', 'application/json')
+            ->withHeader('Content-Type', 'application/json')
             ->withStatus(400);
     }
 
@@ -45,7 +54,13 @@ class ResponseFactory {
         $response->getBody()->write(json_encode($message));
 
         return $response
-            ->withHeader('content-type', 'application/json')
+            ->withHeader('Content-Type', 'application/json')
             ->withStatus(409);
+    }
+
+    public static function InternalServerError() {
+        $response = new Response();
+        return $response
+            ->withStatus(500);
     }
 }

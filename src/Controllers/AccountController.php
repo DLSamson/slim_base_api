@@ -124,7 +124,7 @@ class AccountController extends BaseController {
         ]));
         if($errors) return ResponseFactory::BadRequest($errors);
 
-        $authHash = $response->getHeaderLine('Authorization');
+        $authHash = $request->getHeaderLine('Authorization');
         $email = Authorization::getAuthenticatedEmail($authHash);
 
         if(!$email)
@@ -133,7 +133,20 @@ class AccountController extends BaseController {
         if(User::where(['email' => $data['email']])->first())
             return ResponseFactory::Conflict('Аккаунт с таким email уже существует');
 
-        $user = User::where(['email' => $data['email']])->update($data)->first();
-        dump($user);
+        $data['passwordHash'] = User::HashPassword($data['password']);
+        unset($data['password']);
+
+        User::where(['email' => $email])
+            ->update($data);
+
+        $user = User::where(['email' => $data['email']])
+            ->select('id', 'firstName', 'lastName', 'email')
+            ->first();
+
+
+        if($user->save())
+            return ResponseFactory::Success($user);
+
+        return ResponseFactory::InternalServerError();
     }
 }
