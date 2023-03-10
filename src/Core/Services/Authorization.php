@@ -18,12 +18,11 @@ class Authorization {
 
         [$email, $password] = explode(':', base64_decode((string) $authHash));
 
-        $user = User::where([
-            'email'        => $email,
-            'passwordHash' => User::HashPassword($password),
-        ])->first();
+        $user = User::where(['email' => $email])->first();
+        if(!$user) return self::FAIL;
 
-        return $user
+        $result = password_verify($password, $user->passwordHash);
+        return $result
             ? self::SUCCESS
             : self::FAIL;
     }

@@ -21,16 +21,17 @@ $app->get('/', function ($req, $res) {
 /* Requrie authoriaztion */
 $app->group('', function (RouteCollectorProxy $group) {
 
-    $group->post('/registration', [AccountController::class, 'register'])->setName('register');
+
 
     $group->put('/accounts[/{accountId}]', [AccountController::class, 'update'])->setName('updateUser');
 
 })
-->add([Authorization::class, 'AuthStrict']);
+    ->add([Authorization::class, 'AuthStrict']);
 
 
 /* Requrie allow null authorization */
 $app->group('', function (RouteCollectorProxy $group) {
+    $group->post('/registration', [AccountController::class, 'register'])->setName('register');
 
     $group->get('/accounts/search', [AccountController::class, 'searchParams'])->setName('user.searchParams');
     $group->get('/accounts[/{accountId}]', [AccountController::class, 'searchId'])->setName('user.searchId');

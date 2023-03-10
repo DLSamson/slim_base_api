@@ -26,30 +26,37 @@ class AnimalController extends BaseController {
         $params = $request->getQueryParams();
         $params['from'] = $params['from'] === null ? 0 : $params['from'];
         $params['size'] = $params['size'] === null ? 10 : $params['size'];
+        array_walk($params, 'trim');
 
         $result = $this->validate($params, new Assert\Collection([
-                'from' => [
+                'from' => new Assert\Required([
                     new Assert\NotBlank(),
                     new Assert\PositiveOrZero(),
-                ],
-                'size' => [
+                ]),
+                'size' => new Assert\Required([
                     new Assert\NotBlank(),
                     new Assert\Positive(),
-                ],
-                'startDateTime' => new Assert\DateTime(),
-                'endDateTime' => new Assert\DateTime(),
-                'chipperId' => new Assert\Positive(),
-                'chippingLocationId' => new Assert\Positive(),
-                'lifeStatus' => new Assert\EqualTo(['ALIVE', 'DEAD']),
-                'gender' => new Assert\EqualTo(['MALE', 'FEMALE', 'OTHER']),
+                ]),
+                'startDateTime' => new Assert\Optional(new Assert\DateTime()),
+                'endDateTime' => new Assert\Optional(new Assert\DateTime()),
+                'chipperId' => new Assert\Optional(new Assert\Positive()),
+                'chippingLocationId' => new Assert\Optional(new Assert\Positive()),
+                'lifeStatus' => new Assert\Optional(new Assert\EqualTo(['ALIVE', 'DEAD'])),
+                'gender' => new Assert\Optional(new Assert\EqualTo(['MALE', 'FEMALE', 'OTHER'])),
             ]
         ), $response);
         if($result !== true) return $result;
 
         /* @var Collection $animals */
-        $animals = Animal::where($params)->get();
-        if($animals->count() == 0) return $response->withStatus(404);
-
-        return $response->withStatus(500);
+        $queryConditions = array_filter($params,
+            fn($el) => !in_array($el, ['from', 'size']), ARRAY_FILTER_USE_KEY);
+        $animals = Animal::where($queryConditions)
+            ->limit($params['size'])
+            ->offset($params['from'])
+            ->get();
+        $response->getBody()->write(json_encode($animals));
+        return $response
+            ->withHeader('Content-Type', 'application/json')
+            ->withStatus(200);
     }
 }

@@ -10,8 +10,8 @@ class User extends Model {
         'firstName', 'lastName', 'email', 'passwordHash',
     ];
 
-    public static function HashPassword(string $password) {
-        return password_hash($password, PASSWORD_BCRYPT);
+    public static function HashPassword($password) {
+        return password_hash((string) $password, PASSWORD_DEFAULT);
     }
 
     public static function GetUserByAuthHash($authHash = '') {

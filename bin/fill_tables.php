@@ -8,6 +8,14 @@ use Api\Core\Models\User;
 
 $faker = Faker\Factory::create();
 
+
+(new User([
+    'firstName' => 'firstname',
+    'lastName' => 'lastname',
+    'email' => 'dlsamson@yandex.ru',
+    'passwordHash' => User::HashPassword('admin'),
+]))->save();
+
 foreach(range(1, 20) as $index) {
     $user = new User([
         'firstName'    => $faker->firstName(),
@@ -16,10 +24,7 @@ foreach(range(1, 20) as $index) {
         'passwordHash' => User::HashPassword($faker->password()),
     ]);
 
-//    $user->save();
-
-//    echo "$index: User created";
-    echo $user->email . PHP_EOL;
+    $user->save();
+    echo "$index: User created";
 }
-
 echo "\nCOMPLETE";
