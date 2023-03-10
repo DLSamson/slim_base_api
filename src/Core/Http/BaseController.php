@@ -14,11 +14,11 @@ class BaseController {
     protected LoggerInterface $log;
     protected ValidatorInterface $validator;
 
-    public function validate($data, $constraints, $response) {
+    public function validate($data, $constraints) {
 
         $violations = $this->validator->validate($data, $constraints);
 
-        if($violations->count() === 0) return true;
+        if($violations->count() === 0) return [];
 
         /* If has errors */
         $errors = [];
@@ -26,10 +26,6 @@ class BaseController {
             /* @var ConstraintViolationInterface $violation */
             $errors[$violation->getPropertyPath()] = $violation->getMessage();
         }
-        $response->getBody()->write(json_encode($errors));
-
-        return $response
-            ->withHeader('content-type', 'application/json')
-            ->withStatus(400);
+        return $errors;
     }
 }

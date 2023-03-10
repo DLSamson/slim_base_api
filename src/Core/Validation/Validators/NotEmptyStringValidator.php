@@ -2,17 +2,17 @@
 
 namespace Api\Core\Validation\Validators;
 
-use Api\Core\Validation\Constraints\EmptyString;
+use Api\Core\Validation\Constraints\NotEmptyString;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Exception\UnexpectedValueException;
 
-class EmptyStringValidator extends ConstraintValidator {
+class NotEmptyStringValidator extends ConstraintValidator {
 
     public function validate($value, Constraint $constraint) {
-        if (!$constraint instanceof EmptyString) {
-            throw new UnexpectedTypeException($constraint, EmptyString::class);
+        if (!$constraint instanceof NotEmptyString) {
+            throw new UnexpectedTypeException($constraint, NotEmptyString::class);
         }
 
         if (!is_string($value)) {

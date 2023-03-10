@@ -3,13 +3,13 @@
 namespace Api\Core\Validation\Constraints;
 
 use Symfony\Component\Validator\Constraint;
-use Api\Core\Validation\Validators\EmptyStringValidator;
+use Api\Core\Validation\Validators\NotEmptyStringValidator;
 
-class EmptyString extends Constraint {
+class NotEmptyString extends Constraint {
     public $message = 'String is empty';
 
     public function validatedBy()
     {
-        return EmptyStringValidator::class;
+        return NotEmptyStringValidator::class;
     }
 }

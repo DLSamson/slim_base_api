@@ -43,4 +43,4 @@ $app->group('', function (RouteCollectorProxy $group) {
 $app->group('', function (RouteCollectorProxy $group) {
     $group->post('/registration', [AccountController::class, 'register'])->setName('user.create');
 })
-    ->add([Authorization::class, 'AuthNowAllowed']);
+    ->add([Authorization::class, 'AuthNotAllowed']);
