@@ -111,7 +111,7 @@ class AccountController extends BaseController {
 
     public function update(Request $request, Response $response, array $args) {
         $accountId = $args['accountId'];
-        $errors = $this->validate($accountId, new Assert\Positive(), $response);
+        $errors = $this->validate($accountId, new Assert\Positive());
         if($errors) return ResponseFactory::BadRequest($errors);
 
         $json = $request->getBody();
@@ -128,7 +128,7 @@ class AccountController extends BaseController {
         $email = Authorization::getAuthenticatedEmail($authHash);
 
         if(!$email)
-            return ResponseFactory::Unauthorized();
+            return ResponseFactory::Forbidden();
 
         if(User::where(['email' => $data['email']])->first())
             return ResponseFactory::Conflict('Аккаунт с таким email уже существует');
@@ -148,5 +148,19 @@ class AccountController extends BaseController {
             return ResponseFactory::Success($user);
 
         return ResponseFactory::InternalServerError();
+    }
+
+    public function delete(Request $request, Response $response, array $args) {
+        $accountId = $args['accountId'];
+        $errors = $this->validate($accountId, new Assert\Positive());
+        if($errors) return ResponseFactory::BadRequest($errors);
+
+        $authHash = $request->getHeaderLine('Authorization');
+        $email = Authorization::getAuthenticatedEmail($authHash);
+
+        if(!$email)
+            return ResponseFactory::Forbidden();
+
+
     }
 }

@@ -20,7 +20,8 @@ $app->get('/', function ($req, $res) {
 
 /* Requrie authoriaztion */
 $app->group('', function (RouteCollectorProxy $group) {
-    $group->put('/accounts[/{accountId}]', [AccountController::class, 'update'])->setName('updateUser');
+    $group->put('/accounts[/{accountId}]', [AccountController::class, 'update'])->setName('user.update');
+    $group->delete(' /accounts/{accountId}', [AccountController::class, 'delete'])->setName('user.delete');
 })
     ->add([Authorization::class, 'AuthStrict']);
 
