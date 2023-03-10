@@ -16,7 +16,8 @@ class Authorization {
     public static function Auth($authHash = '') {
         if ($authHash == '') return self::NULL;
 
-        [$email, $password] = explode(':', base64_decode((string) $authHash));
+        $authHash = str_replace('Basic ', '', $authHash);
+        [$email, $password] = explode(':', base64_decode($authHash));
 
         $user = User::where(['email' => $email])->first();
         if(!$user) return self::FAIL;
@@ -44,6 +45,18 @@ class Authorization {
             $response = new Response();
             $response->getBody()->write('Неверные авторизационные данные');
             return $response->withStatus(401);
+        }
+
+        $response = $requestHandler->handle($request);
+        return $response;
+    }
+
+    public static function AuthNowAllowed(Request $request, RequestHandler $requestHandler) : ResponseInterface {
+        $auth_code = self::Auth($request->getHeaderLine('Authorization'));
+        if ($auth_code === self::SUCCESS) {
+            $response = new Response();
+            $response->getBody()->write('Запрос от авторизованного аккаунта');
+            return $response->withStatus(403);
         }
 
         $response = $requestHandler->handle($request);

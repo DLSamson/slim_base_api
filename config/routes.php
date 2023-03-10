@@ -20,30 +20,27 @@ $app->get('/', function ($req, $res) {
 
 /* Requrie authoriaztion */
 $app->group('', function (RouteCollectorProxy $group) {
-
-
-
     $group->put('/accounts[/{accountId}]', [AccountController::class, 'update'])->setName('updateUser');
-
 })
     ->add([Authorization::class, 'AuthStrict']);
 
 
 /* Requrie allow null authorization */
 $app->group('', function (RouteCollectorProxy $group) {
-    $group->post('/registration', [AccountController::class, 'register'])->setName('register');
-
     $group->get('/accounts/search', [AccountController::class, 'searchParams'])->setName('user.searchParams');
     $group->get('/accounts[/{accountId}]', [AccountController::class, 'searchId'])->setName('user.searchId');
 
     $group->get('/animals/search', [AnimalController::class, 'searchParams'])->setName('animal.searchParams');
     $group->get('/animals/{animalId}', [AnimalController::class, 'searchId'])->setName('animal.searchId');
-
-    $group->get('/animals/types/{typeId}', [TypeController::class, 'search'])->setName('type.searchId');
+    $group->get('/animals/types/{typeId}', [TypeController::class, 'search'])->setName('animal.type');
+    $group->get('/animals/{animalId}/locations', [AnimalController::class, 'locations'])->setName('animal.locations');
 
     $group->get('/locations/{pointId}', [LocationController::class, 'search'])->setName('location.searchId');
-
-    //$group->get('/animals/{animalId}/locations', [])->setName('');
-
 })
     ->add([Authorization::class, 'AuthAllowNull']);
+
+/* Not allowed for authorized users */
+$app->group('', function (RouteCollectorProxy $group) {
+    $group->post('/registration', [AccountController::class, 'register'])->setName('user.create');
+})
+    ->add([Authorization::class, 'AuthNowAllowed']);

@@ -58,7 +58,7 @@ services:
      - api
    environment:
      SERVER_URL: http://nginx:80
-     STAGE: 1
+     STAGE: 2
     # all - запуск всех тестов из трёх доступных этапов
     # 0, 1 или 2 - запуск тестов для соответствующего этапа
 

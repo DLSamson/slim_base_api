@@ -100,9 +100,8 @@ class AccountController extends BaseController {
         ), $response);
         if($result !== true) return $result;
 
-        $params          = array_filter($params, fn($el) => $el != null && $el != "");
         $queryConditions = array_filter($params, fn($el) =>
-            in_array($el, ['from', 'size']), ARRAY_FILTER_USE_KEY);
+            !in_array($el, ['from', 'size']), ARRAY_FILTER_USE_KEY);
 
         /* @var Collection $users */
         $users = User::where($queryConditions)
