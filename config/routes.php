@@ -39,6 +39,12 @@ $app->group('', function (RouteCollectorProxy $group) {
     $group->delete('/animals/types/{typeId}', [TypeController::class, 'delete'])
         ->setName('type.delete');
 
+    $group->post('/animals', [AnimalController::class, 'create'])
+        ->setName('animal.create');
+    $group->put('/animals/{animalId}', [AnimalController::class, 'update'])
+        ->setName('animal.update');
+    $group->delete('/animals/{animalId}', [AnimalController::class, 'delete'])
+        ->setName('animal.delete');
 
 })
     ->add([Authorization::class, 'AuthStrict']);

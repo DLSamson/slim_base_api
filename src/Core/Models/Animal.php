@@ -11,6 +11,13 @@ class Animal extends Model {
         'gender', 'lifeStatus', 'chipperId',
     ];
 
+    public static function genderValues() {
+        return ['MALE', 'FEMALE', 'OTHER'];
+    }
+    public static function lifeStatusValues() {
+        return ['ALIVE', 'DEAD'];
+    }
+
     public function location() {
         return $this->hasOne(Location::class, 'id', 'chippingLocationId');
     }

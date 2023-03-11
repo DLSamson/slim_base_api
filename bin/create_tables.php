@@ -54,10 +54,10 @@ Capsule::schema()->create('animals', function (Blueprint $table) {
 
     /* Глянуть ограничения */
     $table->string('gender');
-    $table->string('lifeStatus');
+    $table->string('lifeStatus')->default('ALIVE');
 
     //Автоматом на момент добавления
-    $table->timestamp('chippingDateTime')->default(Capsule::raw('CURRENT_TIMESTAMP'));
+    $table->dateTime('chippingDateTime')->default(Capsule::raw('CURRENT_TIMESTAMP'));
 
     /* Привязать к пользователю */
     $table->unsignedBigInteger('chipperId');
@@ -69,7 +69,7 @@ Capsule::schema()->create('animals', function (Blueprint $table) {
     $table->foreign('chippingLocationId')
         ->references('id')->on('locations');
 
-    $table->date('deathDateTime')->nullable();
+    $table->dateTime('deathDateTime')->nullable()->default(null);
 
     $table->timestamps();
     $table->softDeletes();
