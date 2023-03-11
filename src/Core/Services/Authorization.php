@@ -32,14 +32,21 @@ class Authorization {
     /**
      * @param   string  $authHash
      *
-     * @return false|string
+     * @return false|User
      */
-    public static function getAuthenticatedEmail($authHash = '') {
-        $authCode = self::Auth($authHash);
-        if($authCode !== self::SUCCESS) return false;
+    public static function getAuthorizedUser($authHash = '') {
+        if ($authHash == '') return false;
 
         $authHash = str_replace('Basic ', '', $authHash);
-        return explode(':', base64_decode($authHash))[0];
+        [$email, $password] = explode(':', base64_decode($authHash));
+
+        $user = User::where(['email' => $email])->first();
+        if(!$user) return false;
+
+        $result = password_verify($password, $user->passwordHash);
+        return $result
+            ? $user
+            : false;
     }
 
     public static function AuthAllowNull(Request $request, RequestHandler $requestHandler) : ResponseInterface {

@@ -84,9 +84,9 @@ class AccountController extends BaseController {
         $params['size'] = $params['size'] !== null ? $params['size'] : 10;
 
         $errors     = $this->validate($params, new Assert\Collection([
-            'firstName' => new Assert\Optional([new Assert\NotBlank(), new OwnAssert\NotEmptyString()]),
-            'lastName' => new Assert\Optional([new Assert\NotBlank(), new OwnAssert\NotEmptyString()]),
-            'email' => new Assert\Optional([new Assert\NotBlank(), new Assert\Email]),
+            'firstName' => new Assert\Optional([new Assert\NotBlank()]),
+            'lastName' => new Assert\Optional([new Assert\NotBlank()]),
+            'email' => new Assert\Optional([new Assert\NotBlank()]),
             'from' => new Assert\Required([new Assert\NotBlank(), new Assert\PositiveOrZero()]),
             'size' => new Assert\Required([new Assert\NotBlank(), new Assert\Positive()]),
         ]));
@@ -94,6 +94,8 @@ class AccountController extends BaseController {
 
         $queryConditions = array_filter($params, fn($el) =>
             !in_array($el, ['from', 'size']), ARRAY_FILTER_USE_KEY);
+        $queryConditions = array_map(
+            fn($key, $val) => [$key, 'like', "%$val%"], array_keys($queryConditions), $queryConditions);
 
         /* @var Collection $users */
         $users = User::where($queryConditions)
@@ -119,33 +121,38 @@ class AccountController extends BaseController {
         $errors = $this->validate($data, new Assert\Collection([
             'firstName' => [new Assert\NotBlank(), new OwnAssert\NotEmptyString()],
             'lastName' => [new Assert\NotBlank(), new OwnAssert\NotEmptyString()],
-            'email' => new Assert\Email(),
+            'email' => [new Assert\NotBlank(), new Assert\Email()],
             'password' => [new Assert\NotBlank(), new OwnAssert\NotEmptyString()],
         ]));
         if($errors) return ResponseFactory::BadRequest($errors);
 
         $authHash = $request->getHeaderLine('Authorization');
-        $email = Authorization::getAuthenticatedEmail($authHash);
+        $user = Authorization::getAuthorizedUser($authHash);
 
-        if(!$email)
+        if(!$user || $user->id != $accountId)
             return ResponseFactory::Forbidden();
 
-        if(User::where(['email' => $data['email']])->first())
+        if(User::where([
+            ['id', '<>', $user->id],
+            'email' => $data['email']
+        ])->first())
             return ResponseFactory::Conflict('Аккаунт с таким email уже существует');
 
         $data['passwordHash'] = User::HashPassword($data['password']);
-        unset($data['password']);
 
-        User::where(['email' => $email])
-            ->update($data);
-
-        $user = User::where(['email' => $data['email']])
-            ->select('id', 'firstName', 'lastName', 'email')
-            ->first();
+        $user->firstName = $data['firstName'];
+        $user->lastName = $data['lastName'];
+        $user->email = $data['email'];
+        $user->passwordHash = $data['passwordHash'];
 
 
         if($user->save())
-            return ResponseFactory::Success($user);
+            return ResponseFactory::Success([
+                'id' => $user->id,
+                'firstName' => $user->firstName,
+                'lastName' => $user->lastName,
+                'email' => $user->email,
+            ]);
 
         return ResponseFactory::InternalServerError();
     }
@@ -156,11 +163,17 @@ class AccountController extends BaseController {
         if($errors) return ResponseFactory::BadRequest($errors);
 
         $authHash = $request->getHeaderLine('Authorization');
-        $email = Authorization::getAuthenticatedEmail($authHash);
+        $user = Authorization::getAuthorizedUser($authHash);
 
-        if(!$email)
+        if(!$user || $user->id != $accountId)
             return ResponseFactory::Forbidden();
 
+        if($user->animals()->first())
+            return ResponseFactory::BadRequest('Аккаунт связан с животным');
 
+        if($user->delete())
+            return ResponseFactory::Success();
+
+        return ResponseFactory::InternalServerError();
     }
 }

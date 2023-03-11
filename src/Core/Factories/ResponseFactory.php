@@ -16,6 +16,16 @@ class ResponseFactory {
             ->withStatus(200);
     }
 
+    public static function Created($data = []) {
+        $response = new Response();
+        if($data) {
+            $response->getBody()->write(json_encode($data));
+            $response = $response->withHeader('Content-Type', 'application/json');
+        }
+        return $response
+            ->withStatus(201);
+    }
+
     public static function BadRequest($errors = []) : ResponseInterface {
         $response = new Response();
         $response->getBody()->write(json_encode($errors));

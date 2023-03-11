@@ -6,5 +6,8 @@ data:
 
 database: tables data
 
+docker: database
+	php-fpm -R
+
 .PHONY:
 	tables data database

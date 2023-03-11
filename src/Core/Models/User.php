@@ -13,4 +13,8 @@ class User extends Model {
     public static function HashPassword($password) {
         return password_hash((string) $password, PASSWORD_DEFAULT);
     }
+
+    public function animals() {
+        return $this->hasMany(Animal::class, 'id', 'chipperId');
+    }
 }

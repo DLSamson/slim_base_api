@@ -10,4 +10,12 @@ class Type extends Model {
         'type',
     ];
 
+    public function animals() {
+        return $this->belongsToMany(
+            Animal::class,
+            'animals_types',
+            'type_id',
+            'animal_id'
+        );
+    }
 }

@@ -23,7 +23,7 @@ services:
   nginx:
     image: nginx:latest
     ports: 
-      - 8080:80
+      - '8080:80'
     volumes:
       - './:/var/www/html'
       - './docker/nginx/conf.d:/etc/nginx/conf.d'
@@ -31,6 +31,7 @@ services:
       - 'php:php'
     networks:
       - api
+    restart: always
 
   mysql:
     image: mysql:8.0
@@ -49,7 +50,7 @@ services:
    image: mrexpen/planet_olymp_phase1
 #   pull_policy: always
    ports:
-     - "8090:8080"
+     - '8090:8080'
    depends_on:
      - php
    links:
@@ -58,7 +59,7 @@ services:
      - api
    environment:
      SERVER_URL: http://nginx:80
-     STAGE: 1
+     STAGE: 2
     # all - запуск всех тестов из трёх доступных этапов
     # 0, 1 или 2 - запуск тестов для соответствующего этапа
 

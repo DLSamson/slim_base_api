@@ -11,4 +11,25 @@ class Animal extends Model {
         'gender', 'lifeStatus', 'chipperId',
     ];
 
+    public function location() {
+        return $this->hasOne(Location::class, 'id', 'chippingLocationId');
+    }
+
+    public function locations() {
+        return $this->belongsToMany(
+            Location::class,
+            'animals_locations',
+            'animal_id',
+            'location_id'
+        );
+    }
+
+    public function types() {
+        return $this->belongsToMany(
+            Type::class,
+            'animals_types',
+            'animal_id',
+            'type_id'
+        );
+    }
 }
