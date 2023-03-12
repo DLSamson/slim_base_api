@@ -16,13 +16,10 @@ class TypeController extends BaseController {
         $errors = $this->validate($typeId, new Assert\Positive());
         if($errors) return ResponseFactory::BadRequest($errors);
 
-        $type = Type::where(['id' => $typeId])->first();
+        $type = Type::where(['id' => $typeId])->select('id', 'type')->first();
         if(!$type) return ResponseFactory::NotFound();
 
-        $response->getBody()->write(json_encode($type));
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(200);
+        return ResponseFactory::Success($type);
     }
 
     public function create(Request $request, Response $response, $args) {

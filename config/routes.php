@@ -46,6 +46,19 @@ $app->group('', function (RouteCollectorProxy $group) {
     $group->delete('/animals/{animalId}', [AnimalController::class, 'delete'])
         ->setName('animal.delete');
 
+    $group->post('/animals/{animalId}/types/{typeId}', [AnimalController::class, 'addType'])
+        ->setName('animal.type.add');
+    $group->put('/animals/{animalId}/types', [AnimalController::class, 'updateType'])
+        ->setName('animal.type.update');
+    $group->delete('/animals/{animalId}/types/{typeId}', [AnimalController::class, 'deleteType'])
+        ->setName('animal.type.delete');
+
+    $group->post('/animals/{animalId}/locations/{pointId}', [AnimalController::class, 'locationAdd'])
+        ->setName('animal.locations.create');
+    $group->put('/animals/{animalId}/locations', [AnimalController::class, 'locationUpdate'])
+        ->setName('animal.locations.update');
+    $group->delete('/animals/{animalId}/locations/{visitedPointId}', [AnimalController::class, 'locationDelete'])
+        ->setName('animal.locations.delete');
 })
     ->add([Authorization::class, 'AuthStrict']);
 
@@ -65,7 +78,7 @@ $app->group('', function (RouteCollectorProxy $group) {
     $group->get('/animals/types/{typeId}', [TypeController::class, 'search'])
         ->setName('animal.type');
 
-    $group->get('/animals/{animalId}/locations', [AnimalController::class, 'locations'])
+    $group->get('/animals/{animalId}/locations', [AnimalController::class, 'locationsSearch'])
         ->setName('animal.locations');
 
     $group->get('/locations/{pointId}', [LocationController::class, 'search'])

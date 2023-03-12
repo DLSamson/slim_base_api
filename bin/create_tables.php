@@ -29,8 +29,8 @@ Capsule::schema()->create('users', function (Blueprint $table) {
 Capsule::schema()->create('locations', function (Blueprint $table) {
     $table->id();
 
-    $table->double('latitude');
-    $table->double('longitude');
+    $table->float('latitude', 23, 20);
+    $table->double('longitude', 23, 20);
 
     $table->timestamps();
     $table->softDeletes();
@@ -79,11 +79,16 @@ Capsule::schema()->create('animals_locations', function(Blueprint $table) {
     $table->id();
     $table->unsignedBigInteger('animal_id')->unsigned();
     $table->unsignedBigInteger('location_id')->unsigned();
+    $table->dateTime('dateTimeOfVisitLocationPoint')
+        ->default(Capsule::raw('CURRENT_TIMESTAMP'));
 
     $table->foreign('animal_id')->references('id')
         ->on('animals')->onDelete('cascade');
     $table->foreign('location_id')->references('id')
         ->on('locations')->onDelete('cascade');
+
+    $table->timestamps();
+    $table->softDeletes();
 });
 
 Capsule::schema()->create('animals_types', function(Blueprint $table) {

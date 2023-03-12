@@ -15,13 +15,11 @@ class LocationController extends BaseController{
         $errors = $this->validate($pointId, new Assert\Positive());
         if($errors) return ResponseFactory::BadRequest($errors);
 
-        $location = Location::where(['id' => $pointId])->first();
+        $location = Location::where(['id' => $pointId])
+            ->select('id', 'latitude', 'longitude')->first();
         if(!$location) return ResponseFactory::NotFound();
 
-        $response->getBody()->write(json_encode($location));
-        return $response
-            ->withHeader('Content-type', 'application/json')
-            ->withStatus(200);
+        return ResponseFactory::Success($location);
     }
 
     public function create(Request $request, Response $response, array $args) {
