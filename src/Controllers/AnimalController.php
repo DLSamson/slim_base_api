@@ -43,8 +43,8 @@ class AnimalController extends BaseController {
                 new Assert\NotBlank(),
                 new Assert\Positive(),
             ]),
-            'startDateTime' => new Assert\Optional(new Assert\DateTime()),
-            'endDateTime' => new Assert\Optional(new Assert\DateTime()),
+            'startDateTime' => new Assert\Optional(new Assert\Time()),
+            'endDateTime' => new Assert\Optional(new Assert\Time()),
             'chipperId' => new Assert\Optional(new Assert\Positive()),
             'chippingLocationId' => new Assert\Optional(new Assert\Positive()),
             'lifeStatus' => new Assert\Optional(new Assert\Choice([], ['ALIVE', 'DEAD'])),
@@ -88,7 +88,7 @@ class AnimalController extends BaseController {
         $errors = $this->validate($data['animalTypes'], new Assert\Unique());
         if($errors) return ResponseFactory::Conflict('Массив animalTypes содержит дубликаты');
 
-        $types = Type::whereIn('id',$data['animalTypes'])
+        $types = Type::whereIn('id', $data['animalTypes'])
             ->select('id', 'type')->get();
         if($types->count() !== count($data['animalTypes']))
             return ResponseFactory::NotFound('Тип животного не найден');
@@ -114,10 +114,9 @@ class AnimalController extends BaseController {
         if(!$animal->save())
             return ResponseFactory::InternalServerError();
 
-        foreach($data['animalTypes'] as $id)
-            $animal->types()->attach($id);
+        $animal->types()->sync($data['animalTypes'], false);
 
-        $animal = $animal->first();
+        $animal = $animal->find($animal->id);
 
         return ResponseFactory::Created(
             AnimalDataFormatter::prepareForRespone($animal));
@@ -146,14 +145,16 @@ class AnimalController extends BaseController {
         if(!$animal)
             return ResponseFactory::NotFound('Животное с animalId не найдено');
 
-        if($animal->chippingLocationId == $data['chippingLocationId'])
+        $visitedLocation = AnimalLocation::where(['animal_id' => $animalId])
+            ->orderBy('dateTimeOfVisitLocationPoint', 'desc')->first();
+        if($visitedLocation != null && $visitedLocation->location_id == $data['chippingLocationId'])
             return ResponseFactory::BadRequest('Новая точка чипирования 
                 совпадает с первой посещенной точкой локации');
 
         if(!Location::where(['id' => $data['chippingLocationId']])->first())
             return ResponseFactory::NotFound('Точка локации с chippingLocationId не найдена');
 
-        if(User::where(['id' => $data['chipperId']]))
+        if(!User::find($data['chipperId']))
             return ResponseFactory::NotFound('Аккаунт с chipperId не найден');
 
         $animal->weight = $data['weight'];
@@ -183,7 +184,7 @@ class AnimalController extends BaseController {
         if(!$animal)
             return ResponseFactory::NotFound('Животное с animalId не найдено');
 
-        if($animal->locations()->get()->count() !== 0)
+        if($animal->locations()->first())
             return ResponseFactory::BadRequest('Животное покинуло локацию чипирования, 
                 при этом есть другие посещенные точки');
 
@@ -211,13 +212,11 @@ class AnimalController extends BaseController {
         if(!Type::find($typeId))
             return ResponseFactory::NotFound('Тип животного с typeId не найден');
 
-        if($animal->types()->find($typeId)->first())
+        if($animal->types()->find($typeId))
             return ResponseFactory::Conflict('Тип животного с typeId уже есть у животного с animalId');
 
-        if($animal->types()->attach($typeId))
-            return ResponseFactory::Created(AnimalDataFormatter::prepareForRespone($animal));
-
-        return ResponseFactory::InternalServerError();
+        $animal->types()->attach($typeId);
+        return ResponseFactory::Created(AnimalDataFormatter::prepareForRespone($animal));
     }
 
     public function updateType(Request $request, Response $response, array $args) {
@@ -247,15 +246,17 @@ class AnimalController extends BaseController {
         /* @var Collection $animalTypes */
         $animalTypes = $animal->types()->get();
 
-        if(!$animalTypes->has($data['oldTypeId']))
+        if(!$animalTypes->find($data['oldTypeId']))
             return ResponseFactory::NotFound('Типа животного с oldTypeId нет у животного с animalId');
-        if($animalTypes->has($data['newTypeId']))
+        if($animalTypes->find($data['newTypeId']))
             return ResponseFactory::Conflict('Тип животного с newTypeId уже есть у животного с animalId');
-        if($animalTypes->has($data['newTypeId']) && $animalTypes->has($data['oldTypeId']))
+        if($animalTypes->find($data['newTypeId']) && $animalTypes->find($data['oldTypeId']))
             return ResponseFactory::Conflict('Животное с animalId уже имеет типы с oldTypeId и newTypeId');
 
-        if($animal->types()->detach($data['oldTypeId']) && $animal->types()->attach($data['oldTypeId']))
-            return ResponseFactory::Success(AnimalDataFormatter::prepareForRespone($animal));
+        $animal->types()->detach($data['oldTypeId']);
+        $animal->types()->attach($data['newTypeId']);
+
+        return ResponseFactory::Success(AnimalDataFormatter::prepareForRespone($animal));
     }
 
     public function deleteType(Request $request, Response $response, array $args) {
@@ -277,8 +278,8 @@ class AnimalController extends BaseController {
             return ResponseFactory::NotFound('Тип животного с typeId не найден');
 
         /* @var Collection $animalTypes */
-        $animalTypes = $animal->types()->get();
-        if(!$animalTypes->has($typeId))
+        $animalTypes = $animal->types()->get()->keyBy('id');
+        if(!$animalTypes->find($typeId))
             return ResponseFactory::NotFound('У животного с animalId нет типа с typeId');
 
         if($animalTypes->count() === 1)
@@ -303,13 +304,13 @@ class AnimalController extends BaseController {
         $errors = $this->validate($params, new Assert\Collection([
             'from' => new Assert\Required([new Assert\NotBlank(), new Assert\PositiveOrZero()]),
             'size' => new Assert\Required([new Assert\NotBlank(), new Assert\Positive()]),
-            'startDateTime' => new Assert\Optional(new Assert\DateTime()),
-            'endDateTime' => new Assert\Optional(new Assert\DateTime()),
+            'startDateTime' => new Assert\Optional(new Assert\Time()),
+            'endDateTime' => new Assert\Optional(new Assert\Time()),
         ]));
         if($errors) return ResponseFactory::BadRequest($errors);
 
         $queryCondition = array_filter($params,
-            fn($el) => !in_array($el, ['from', 'size']));
+            fn($el) => !in_array($el, ['from', 'size']), ARRAY_FILTER_USE_KEY);
         if($params['startDateTime'])
             $queryCondition[] = ['dateTimeOfVisitLocationPoint', '>', $params['startDateTime']];
         if($params['startDateTime'])
@@ -318,14 +319,18 @@ class AnimalController extends BaseController {
         $animal = Animal::find($animalId);
         if(!$animal) return ResponseFactory::NotFound('Животное с animalId не найдено');
 
-        $locations = $animal->locations()
-            ->where($queryCondition)
+        $locations = AnimalLocation::where($queryCondition)
+            ->where(['animal_id' => $animal->id])
+            ->orderBy('dateTimeOfVisitLocationPoint', 'ASC')
             ->offset($params['from'])
-            ->size($params['size'])
-            ->select('animals_locations.id', 'animals_locations.dateTimeOfVisitLocationPoint', 'locations.id')
+            ->limit($params['size'])
             ->get();
 
-        return ResponseFactory::Success($locations);
+        return ResponseFactory::Success($locations->map(fn($el) => [
+            'id' => $el->id,
+            'dateTimeOfVisitLocationPoint' => DateFormatter::formatToISO8601($el->dateTimeOfVisitLocationPoint),
+            'locationPointId' => $el->location_id,
+        ]));
     }
 
     public function locationAdd(Request $request, Response $response, array $args) {
@@ -346,17 +351,17 @@ class AnimalController extends BaseController {
         if($animal->lifeStatus === 'DEAD')
             return ResponseFactory::BadRequest('У животного lifeStatus = "DEAD"');
 
-        if($animal->chippingLocationId == $pointId)
+        /* @var Collection $visitedLocations */
+        $visitedLocations = AnimalLocation::where(['animal_id' => $animalId])
+            ->get()->sortByDesc('dateTimeOfVisitLocationPoint');
+
+        if($animal->chippingLocationId == $pointId && $visitedLocations->count() === 0)
             return ResponseFactory::BadRequest('
                 Животное находится в точке чипирования 
                 и никуда не перемещалось, попытка добавить 
                 точку локации, равную точке чипирования');
 
-        /* @var Collection $visitedLocations */
-        $visitedLocations = AnimalLocation::where(['animal_id' => $animalId])
-            ->get()->sortByDesc('dateTimeOfVisitLocationPoint');
-
-        if($visitedLocations->first()->id == $pointId)
+        if($visitedLocations->first()->location_id == $pointId)
             return ResponseFactory::BadRequest('
                 Попытка добавить точку локации, в которой уже находится животное');
 
@@ -364,15 +369,15 @@ class AnimalController extends BaseController {
             'animal_id' => $animalId,
             'location_id' => $pointId,
         ]);
+        $visitedLocation->save();
+        $visitedLocation = $visitedLocation->find($visitedLocation->id);
 
-        if($visitedLocation->save())
-            return ResponseFactory::Created([
-                'id' => $visitedLocation->id,
-                'dateTimeOfVisitLocationPoint' => $visitedLocation->dateTimeOfVisitLocationPoint,
-                'locationPointId' => $visitedLocation->location_id,
-            ]);
-
-        return ResponseFactory::InternalServerError();
+        return ResponseFactory::Created([
+            'id' => $visitedLocation->id,
+            'dateTimeOfVisitLocationPoint' =>
+                DateFormatter::formatToISO8601($visitedLocation->dateTimeOfVisitLocationPoint),
+            'locationPointId' => $visitedLocation->location_id,
+        ]);
 }
 
     public function locationUpdate(Request $request, Response $response, array $args) {
@@ -387,7 +392,7 @@ class AnimalController extends BaseController {
             'locationPointId' => [new Assert\NotNull(), new Assert\Positive()],
         ]));
         if($errors) return ResponseFactory::BadRequest($errors);
-
+l
         $animal = Animal::find($animalId);
         if(!$animal)
             return ResponseFactory::NotFound('Животное с animalId не найдено');
@@ -400,12 +405,12 @@ class AnimalController extends BaseController {
         $visitedLocations = AnimalLocation::where([
             'animal_id' => $animalId,
         ])->get()->sortBy('dateTimeOfVisitLocationPoint');
-        if(!$visitedLocations->has($data['visitedLocationPointId']))
+        if(!$visitedLocations->find($data['visitedLocationPointId']))
             return ResponseFactory::NotFound('У животного нет объекта
                 с информацией о посещенной точке локации с visitedLocationPointId.');
 
-        if($visitedLocations->first()->id == $data['visitedLocationPointId'] &&
-            $data['visitedLocationPointId'] == $animal->chippingLocationId
+        if($visitedLocations->first()->location_id == $data['locationPointId'] &&
+            $data['locationPointId'] == $animal->chippingLocationId
         )
             return ResponseFactory::BadRequest('Обновление первой посещенной точки на точку чипирования');
 
@@ -426,7 +431,8 @@ class AnimalController extends BaseController {
         if($visitedLocationToUpdate->save())
             return ResponseFactory::Success([
                 'id' => $visitedLocationToUpdate->id,
-                'dateTimeOfVisitLocationPoint' => $visitedLocationToUpdate->dateTimeOfVisitLocationPoint,
+                'dateTimeOfVisitLocationPoint' =>
+                    DateFormatter::formatToISO8601($visitedLocationToUpdate->dateTimeOfVisitLocationPoint),
                 'locationPointId' => $visitedLocationToUpdate->location_id,
             ]);
     }
@@ -449,7 +455,7 @@ class AnimalController extends BaseController {
             ->get()->sortBy('dateTimeOfVisitLocationPoint');
         $visitedLocationIndex = $visitedLocations->search(fn($el) => $el->id == $visitedPointId);
 
-        if(!$visitedLocations->get($visitedPointId))
+        if(!$visitedLocations->find($visitedPointId))
             return ResponseFactory::NotFound('Объект с информацией о посещенной 
                 точке локации с visitedPointId не найден 
                 или 

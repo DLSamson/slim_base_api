@@ -9,8 +9,8 @@ class Location extends Model {
         'latitude', 'longitude',
     ];
 
-    public function animal() {
-        $this->hasOne(Animal::class, 'chippingLocationId', 'id');
+    public function chippedAnimals() {
+        return $this->hasMany(Animal::class, 'chippingLocationId', 'id');
     }
 
     public function animals() {

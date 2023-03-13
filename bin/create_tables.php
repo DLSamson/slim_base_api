@@ -30,7 +30,7 @@ Capsule::schema()->create('locations', function (Blueprint $table) {
     $table->id();
 
     $table->float('latitude', 23, 20);
-    $table->double('longitude', 23, 20);
+    $table->float('longitude', 23, 20);
 
     $table->timestamps();
     $table->softDeletes();
@@ -48,16 +48,16 @@ Capsule::schema()->create('types', function (Blueprint $table) {
 Capsule::schema()->create('animals', function (Blueprint $table) {
     $table->id();
 
-    $table->float('weight');
-    $table->float('length');
-    $table->float('height');
+    $table->float('weight', 25, 10);
+    $table->float('length', 25, 10);
+    $table->float('height', 25, 10);
 
     /* Глянуть ограничения */
     $table->string('gender');
     $table->string('lifeStatus')->default('ALIVE');
 
     //Автоматом на момент добавления
-    $table->dateTime('chippingDateTime')->default(Capsule::raw('CURRENT_TIMESTAMP'));
+    $table->timestamp('chippingDateTime')->default(Capsule::raw('CURRENT_TIMESTAMP'));
 
     /* Привязать к пользователю */
     $table->unsignedBigInteger('chipperId');
@@ -69,7 +69,7 @@ Capsule::schema()->create('animals', function (Blueprint $table) {
     $table->foreign('chippingLocationId')
         ->references('id')->on('locations');
 
-    $table->dateTime('deathDateTime')->nullable()->default(null);
+    $table->timestamp('deathDateTime')->nullable()->default(null);
 
     $table->timestamps();
     $table->softDeletes();
@@ -79,7 +79,7 @@ Capsule::schema()->create('animals_locations', function(Blueprint $table) {
     $table->id();
     $table->unsignedBigInteger('animal_id')->unsigned();
     $table->unsignedBigInteger('location_id')->unsigned();
-    $table->dateTime('dateTimeOfVisitLocationPoint')
+    $table->timestamp('dateTimeOfVisitLocationPoint')
         ->default(Capsule::raw('CURRENT_TIMESTAMP'));
 
     $table->foreign('animal_id')->references('id')

@@ -24,7 +24,7 @@ class LocationController extends BaseController{
 
     public function create(Request $request, Response $response, array $args) {
         $json = $request->getBody();
-        $data = json_decode($json, true);
+        $data = json_decode($json, true,  JSON_BIGINT_AS_STRING);
         $errors = $this->validate($data, new Assert\Collection([
             'latitude' => [new Assert\NotNull(), new Assert\Range(['min' => -90, 'max' => 90])],
             'longitude' => [new Assert\NotNull(), new Assert\Range(['min' => -180, 'max' => 180])]
@@ -51,7 +51,7 @@ class LocationController extends BaseController{
         if($errors) return ResponseFactory::BadRequest($errors);
 
         $json = $request->getBody();
-        $data = json_decode($json, true);
+        $data = json_decode($json, true,  JSON_BIGINT_AS_STRING);
         $errors = $this->validate($data, new Assert\Collection([
             'latitude' => [new Assert\NotNull(), new Assert\Range(['min' => -90, 'max' => 90])],
             'longitude' => [new Assert\NotNull(), new Assert\Range(['min' => -180, 'max' => 180])]
@@ -83,11 +83,11 @@ class LocationController extends BaseController{
         $errors = $this->validate($pointId, [new Assert\NotNull(), new Assert\Positive()]);
         if($errors) return ResponseFactory::BadRequest($errors);
 
-        $location = Location::where(['id' => $pointId])->first();
+        $location = Location::find($pointId);
         if(!$location)
             return ResponseFactory::NotFound('Точка локации с таким pointId не найдена');
 
-        if($location->animals()->count() !== 0)
+        if($location->animals()->first() || $location->chippedAnimals()->first())
             return ResponseFactory::BadRequest('Точка локации связана с животным');
 
         if($location->delete())

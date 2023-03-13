@@ -15,6 +15,6 @@ class User extends Model {
     }
 
     public function animals() {
-        return $this->hasMany(Animal::class, 'id', 'chipperId');
+        return $this->hasMany(Animal::class, 'chipperId', 'id');
     }
 }

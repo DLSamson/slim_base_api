@@ -4,6 +4,10 @@ use Api\Controllers\AnimalController;
 use Api\Controllers\EchoController;
 use Api\Controllers\AccountController;
 use Api\Controllers\LocationController;
+use Api\Core\Models\Animal;
+use Api\Core\Models\AnimalLocation;
+use Api\Core\Models\Type;
+use Api\Core\Services\DateFormatter;
 use Slim\Routing\RouteCollectorProxy;
 use Api\Core\Services\Authorization;
 use Api\Controllers\TypeController;
@@ -14,7 +18,17 @@ $app->get('/ping', [EchoController::class, 'ping']);
 
 /* Testing example */
 $app->get('/', function ($req, $res) {
-    phpinfo();
+    $visitedLocations = AnimalLocation::where([
+        'animal_id' => 111,
+    ])->get()->sortBy('dateTimeOfVisitLocationPoint');
+    dump($visitedLocations->first());
+    $animal = Animal::find(111);
+    dump($animal);
+
+    dump($visitedLocations->first()->location_id == 228 &&
+        228 == $animal->chippingLocationId);
+
+//    phpinfo();
     return $res->withStatus(200);
 });
 
@@ -63,7 +77,7 @@ $app->group('', function (RouteCollectorProxy $group) {
     ->add([Authorization::class, 'AuthStrict']);
 
 
-/* Requrie allow null authorization */
+/* Allow null authorization */
 $app->group('', function (RouteCollectorProxy $group) {
     $group->get('/accounts/search', [AccountController::class, 'searchParams'])
         ->setName('user.searchParams');

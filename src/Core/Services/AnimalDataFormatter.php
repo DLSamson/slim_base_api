@@ -14,7 +14,7 @@ class AnimalDataFormatter {
         return [
             'id' => $animal->id,
             'animalTypes' => $animal->types()
-                ->get()->map(fn($el) => $el->id),
+                ->get()->map(fn($el) => $el->id)->toArray(),
             'weight' => $animal->weight,
             'length' => $animal->length,
             'height' => $animal->height,
@@ -24,8 +24,8 @@ class AnimalDataFormatter {
             'chipperId' => $animal->chipperId,
             'chippingLocationId' => $animal->chippingLocationId,
             'visitedLocations' => $animal->locations()
-                ->get()->map(fn($el) => $el->id),
-            'deathDateTime' => DateFormatter::formatToISO8601($animal->deathDateTime),
+                ->get()->map(fn($el) => $el->id)->toArray(),
+            'deathDateTime' => $animal->deathDateTime ? DateFormatter::formatToISO8601($animal->deathDateTime) : null,
         ];
     }
 
