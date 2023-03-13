@@ -392,7 +392,7 @@ class AnimalController extends BaseController {
             'locationPointId' => [new Assert\NotNull(), new Assert\Positive()],
         ]));
         if($errors) return ResponseFactory::BadRequest($errors);
-l
+
         $animal = Animal::find($animalId);
         if(!$animal)
             return ResponseFactory::NotFound('Животное с animalId не найдено');
