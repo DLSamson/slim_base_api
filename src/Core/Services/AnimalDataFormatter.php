@@ -2,6 +2,7 @@
 
 namespace Api\Core\Services;
 use Api\Core\Models\Animal;
+use Api\Core\Models\AnimalLocation;
 use Illuminate\Database\Eloquent\Collection;
 
 class AnimalDataFormatter {
@@ -23,8 +24,8 @@ class AnimalDataFormatter {
             'chippingDateTime' => DateFormatter::formatToISO8601($animal->chippingDateTime),
             'chipperId' => $animal->chipperId,
             'chippingLocationId' => $animal->chippingLocationId,
-            'visitedLocations' => $animal->locations()
-                ->get()->map(fn($el) => $el->id)->toArray(),
+            'visitedLocations' => AnimalLocation::where(['animal_id' => $animal->id])
+                ->get()->map(fn($el) => $el->id),
             'deathDateTime' => $animal->deathDateTime ? DateFormatter::formatToISO8601($animal->deathDateTime) : null,
         ];
     }
@@ -47,7 +48,7 @@ class AnimalDataFormatter {
             'chippingDateTime' => DateFormatter::formatToISO8601($animal->chippingDateTime),
             'chipperId' => $animal->chipperId,
             'chippingLocationId' => $animal->chippingLocationId,
-            'visitedLocations' => $animal->locations()
+            'visitedLocations' => AnimalLocation::where(['animal_id' => $animal->id])
                 ->get()->map(fn($el) => $el->id),
             'deathDateTime' => DateFormatter::formatToISO8601($animal->deathDateTime),
         ])->toArray();
