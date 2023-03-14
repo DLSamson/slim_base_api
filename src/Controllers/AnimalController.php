@@ -54,12 +54,18 @@ class AnimalController extends BaseController {
         if($errors) return ResponseFactory::BadRequest($errors);
 
         $queryConditions = array_filter($params,
-            fn($el) => !in_array($el, ['from', 'size']), ARRAY_FILTER_USE_KEY);
+            fn($el) => !in_array($el, ['from', 'size', 'startDateTime', 'endDateTime']), ARRAY_FILTER_USE_KEY);
+
+        if($params['startDateTime'])
+            $queryCondition[] = ['dateTimeOfVisitLocationPoint', '>', $params['startDateTime']];
+        if($params['startDateTime'])
+            $queryCondition[] = ['dateTimeOfVisitLocationPoint', '<', $params['endDateTime']];
 
         /* @var Collection $animals */
         $animals = Animal::where($queryConditions)
             ->limit($params['size'])
             ->offset($params['from'])
+            ->orderBy('id')
             ->get();
 
         return ResponseFactory::Success(AnimalDataFormatter::prepareCollectionForRespone($animals));
@@ -173,6 +179,7 @@ class AnimalController extends BaseController {
         if($animal->save())
             return ResponseFactory::Success(
                 AnimalDataFormatter::prepareForRespone($animal));
+        return ResponseFactory::InternalServerError();
     }
 
     public function delete(Request $request, Response $response, array $args) {
@@ -431,6 +438,7 @@ class AnimalController extends BaseController {
                     DateFormatter::formatToISO8601($visitedLocationToUpdate->dateTimeOfVisitLocationPoint),
                 'locationPointId' => $visitedLocationToUpdate->location_id,
             ]);
+        return ResponseFactory::InternalServerError();
     }
 
     public function locationDelete(Request $request, Response $response, array $args) {

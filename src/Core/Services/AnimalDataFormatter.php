@@ -26,7 +26,9 @@ class AnimalDataFormatter {
             'chippingLocationId' => $animal->chippingLocationId,
             'visitedLocations' => AnimalLocation::where(['animal_id' => $animal->id])
                 ->get()->map(fn($el) => $el->id),
-            'deathDateTime' => $animal->deathDateTime ? DateFormatter::formatToISO8601($animal->deathDateTime) : null,
+            'deathDateTime' => $animal->lifeStatus == 'DEAD'
+                ? DateFormatter::formatToISO8601($animal->deathDateTime)
+                : null,
         ];
     }
 
@@ -50,7 +52,9 @@ class AnimalDataFormatter {
             'chippingLocationId' => $animal->chippingLocationId,
             'visitedLocations' => AnimalLocation::where(['animal_id' => $animal->id])
                 ->get()->map(fn($el) => $el->id),
-            'deathDateTime' => DateFormatter::formatToISO8601($animal->deathDateTime),
+            'deathDateTime' => $animal->lifeStatus == 'DEAD'
+                ? DateFormatter::formatToISO8601($animal->deathDateTime)
+                : null,
         ])->toArray();
     }
 }

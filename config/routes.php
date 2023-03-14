@@ -1,28 +1,13 @@
 <?php
 
 use Api\Controllers\AnimalController;
-use Api\Controllers\EchoController;
 use Api\Controllers\AccountController;
 use Api\Controllers\LocationController;
-use Api\Core\Factories\ResponseFactory;
-use Api\Core\Models\Animal;
-use Api\Core\Models\AnimalLocation;
-use Api\Core\Models\Type;
-use Api\Core\Services\DateFormatter;
-use Illuminate\Database\Eloquent\Collection;
 use Slim\Routing\RouteCollectorProxy;
 use Api\Core\Services\Authorization;
 use Api\Controllers\TypeController;
 
 /* @var \Slim\App $app */
-$app->get('/echo[/{value}]', [EchoController::class, 'echo']);
-$app->get('/ping', [EchoController::class, 'ping']);
-
-/* Testing example */
-$app->get('/', function ($req, $res) {
-//    phpinfo();
-    return $res->withStatus(200);
-});
 
 /* Requrie authoriaztion */
 $app->group('', function (RouteCollectorProxy $group) {
