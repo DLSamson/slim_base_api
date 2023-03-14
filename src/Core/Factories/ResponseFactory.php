@@ -6,9 +6,9 @@ use Psr\Http\Message\ResponseInterface;
 use Slim\Psr7\Response;
 
 class ResponseFactory {
-    public static function Success($data = []) {
+    public static function Success($data = null) {
         $response = new Response();
-        if($data) {
+        if($data !== null) {
             $response->getBody()->write(json_encode($data));
             $response = $response->withHeader('Content-Type', 'application/json');
         }
@@ -16,9 +16,9 @@ class ResponseFactory {
             ->withStatus(200);
     }
 
-    public static function Created($data = []) {
+    public static function Created($data = null) {
         $response = new Response();
-        if($data) {
+        if($data !== null) {
             $response->getBody()->write(json_encode($data));
             $response = $response->withHeader('Content-Type', 'application/json');
         }
